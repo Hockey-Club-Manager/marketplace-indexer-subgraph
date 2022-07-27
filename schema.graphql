@@ -1,5 +1,17 @@
-type ExampleEntity @entity {
+type Token @entity {
   id: ID!
-  block: Bytes!
-  count: BigInt!
+  title: String!
+  media: String!
+  extra: String!
+  issued_at: BigInt!
+  tokenId: String!
+  owner: User!
+  ownerId: String!
+  perpetual_royalties: String!
+}
+
+type User @entity {
+  id: ID!
+  userId: String!
+  tokens: [Token!]! @derivedFrom(field: "owner")
 }
