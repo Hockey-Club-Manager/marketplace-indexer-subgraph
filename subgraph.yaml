@@ -1,12 +1,15 @@
 specVersion: 0.0.4
+description: Subgraph for NFTHockey marketplace
+repository: https://github.com/NFT-Hockey/marketplace-indexer-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: near
-    name: nft.parh.testnet
+    name: marketplace
     network: near-testnet
     source:
       account: "parh.testnet"
+      startBlock: 95212323
     mapping:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
