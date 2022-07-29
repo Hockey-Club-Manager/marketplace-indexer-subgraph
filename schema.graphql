@@ -10,6 +10,13 @@ type Token @entity {
   perpetual_royalties: String!
 }
 
+type MarketplaceToken @entity {
+  id: ID!
+  price: BigInt!
+  token: Token!
+  isAuction: Boolean!
+}
+
 type User @entity {
   id: ID!
   tokens: [String!]

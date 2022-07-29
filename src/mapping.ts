@@ -1,12 +1,12 @@
 import {near, JSONValue, json, ipfs, log, TypedMap, store} from "@graphprotocol/graph-ts"
-import { Token, User } from "../generated/schema"
+import { Token, User, MarketplaceToken } from "../generated/schema"
 
-export function handleReceipt(
+export function handleNFTReceipt(
     receipt: near.ReceiptWithOutcome
 ): void {
   const actions = receipt.receipt.actions;
   for (let i = 0; i < actions.length; i++) {
-    handleAction(actions[i], receipt)
+    handleNFTAction(actions[i], receipt)
   }
 }
 
@@ -19,7 +19,7 @@ export function handleReceipt(
 //     return '{' + result + '}'
 // }
 
-function handleAction(
+function handleNFTAction(
     action: near.ActionValue,
     receiptWithOutcome: near.ReceiptWithOutcome
 ): void {
@@ -91,5 +91,23 @@ function handleAction(
     }
     user.tokens = null
     user.save()
+  }
+  else if (methodName == 'nft_approve') {
+    // {
+    //   "token_id": "token-1656538590693",
+    //   "account_id": "new_new_nft_market.testnet",
+    //   "msg": "{\"is_auction\":true,\"sale_conditions\":{\"near\":\"3000000000000000000000000\"}}"
+    // }
+    const args = json.fromString(functionCall.args.toString()).toObject()
+    const token_id = (args.get('token_id') as JSONValue).toString()
+    const msg = (args.get('msg') as JSONValue).toObject()
+    const is_auction = (msg.get('is_auction') as JSONValue).toBool()
+    const sale_conditions = (msg.get('sale_conditions') as JSONValue).toObject()
+    const price = (sale_conditions.get('near') as JSONValue).toBigInt()
+    const marketplaceToken = new MarketplaceToken(token_id)
+    marketplaceToken.token = token_id
+    marketplaceToken.price = price
+    marketplaceToken.isAuction = is_auction
+    marketplaceToken.save()
   }
 }

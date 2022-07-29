@@ -20,7 +20,7 @@ dataSources:
 #        - handler: handleReceipt
 #      file: ./src/mapping.ts
   - kind: near
-    name: marketplace-nft
+    name: nft-contract
     network: near-testnet
     source:
       account: nft.parh.testnet
@@ -32,5 +32,5 @@ dataSources:
         - Token
         - User
       receiptHandlers:
-        - handler: handleReceipt
+        - handler: handleNFTReceipt
       file: ./src/mapping.ts
