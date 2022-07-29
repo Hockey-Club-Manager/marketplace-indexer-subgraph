@@ -8,6 +8,7 @@ type Token @entity {
   owner: User!
   ownerId: String!
   perpetual_royalties: String!
+  marketplace_data: MarketplaceToken @derivedFrom(field: "token")
 }
 
 type MarketplaceToken @entity {

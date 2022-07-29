@@ -113,6 +113,23 @@ export class Token extends Entity {
   set perpetual_royalties(value: string) {
     this.set("perpetual_royalties", Value.fromString(value));
   }
+
+  get marketplace_data(): string | null {
+    let value = this.get("marketplace_data");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set marketplace_data(value: string | null) {
+    if (!value) {
+      this.unset("marketplace_data");
+    } else {
+      this.set("marketplace_data", Value.fromString(<string>value));
+    }
+  }
 }
 
 export class MarketplaceToken extends Entity {

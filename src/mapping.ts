@@ -109,6 +109,37 @@ function handleNFTAction(
         marketplaceToken.price = price
         marketplaceToken.isAuction = is_auction
         marketplaceToken.save()
+    } else if (methodName == 'nft_transfer_payout') {
+        // {
+        //   "receiver_id": "humster_investor.testnet",
+        //   "token_id": "token-1656538590693",
+        //   "approval_id": 0,
+        //   "memo": "payout from market",
+        //   "balance": "4000000000000000000000000",
+        //   "max_len_payout": 10
+        // }
+        const args = json.fromString(functionCall.args.toString()).toObject()
+        const receiver_id = (args.get('receiver_id') as JSONValue).toString()
+        const token_id = (args.get('token_id') as JSONValue).toString()
+        const token = Token.load(token_id)
+        if (!token) {
+            log.error("token not found: {}", [token_id])
+            return
+        }
+        const marketplaceToken = MarketplaceToken.load(token_id)
+        if (!marketplaceToken) {
+            log.error("marketplaceToken not found: {}", [token_id])
+            return
+        }
+        let user = User.load(receiver_id)
+        if (!user) {
+            user = new User(receiver_id)
+        }
+        token.owner = user.id
+        token.ownerId = user.id
+        store.remove('MarketplaceToken', token_id)
+        token.save()
+        user.save()
     }
 }
 
@@ -117,6 +148,11 @@ function handleMarketplaceAction(
     action: near.ActionValue,
     receiptWithOutcome: near.ReceiptWithOutcome
 ): void {
+
+    if (action.kind != near.ActionKind.FUNCTION_CALL) {
+        return;
+    }
+
     const outcome = receiptWithOutcome.outcome;
     const functionCall = action.toFunctionCall();
     const methodName = functionCall.methodName
@@ -139,6 +175,33 @@ function handleMarketplaceAction(
         marketplaceToken.price = price
         marketplaceToken.save()
     }
-
+    else if (methodName == 'remove_sale') {
+        // {
+        //   "nft_contract_id": "nft_0_0.testnet",
+        //   "token_id": "token-1655676802305"
+        // }
+        const args = json.fromString(functionCall.args.toString()).toObject()
+        const token_id = (args.get('token_id') as JSONValue).toString()
+        store.remove('MarketplaceToken', token_id)
+    }
+    // else if (methodName == 'offer') {
+    //     // {
+    //     //   "nft_contract_id": "nft_0_0.testnet",
+    //     //   "token_id": "token-1656526278801"
+    //     // }
+    //     const args = json.fromString(functionCall.args.toString()).toObject()
+    //     const token_id = (args.get('token_id') as JSONValue).toString()
+    //
+    //
+    // }
+    // else if (methodName == 'accept_offer') {
+    //     // {
+    //     //   "nft_contract_id": "nft_0_0.testnet",
+    //     //   "token_id": "token-1656538590693",
+    //     //   "ft_token_id": "near"
+    //     // }
+    //     const args = json.fromString(functionCall.args.toString()).toObject()
+    //     const token_id = (args.get('token_id') as JSONValue).toString()
+    // }
 }
 
