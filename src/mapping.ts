@@ -1,34 +1,83 @@
-import { near, BigInt } from "@graphprotocol/graph-ts"
-import { ExampleEntity } from "../generated/schema"
+import {near, JSONValue, json, ipfs, log, TypedMap, store} from "@graphprotocol/graph-ts"
+import { Token, User } from "../generated/schema"
 
 export function handleReceipt(
-  receiptWithOutcome: near.ReceiptWithOutcome
+    receipt: near.ReceiptWithOutcome
 ): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(receiptWithOutcome.receipt.id.toHex())
-
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(receiptWithOutcome.receipt.id.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+  const actions = receipt.receipt.actions;
+  for (let i = 0; i < actions.length; i++) {
+    handleAction(actions[i], receipt)
   }
+}
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
 
-  // Entity fields can be set based on receipt information
-  entity.block = receiptWithOutcome.block.header.hash
+// function getJSONString(value: TypedMap<string, JSONValue>): string {
+//     let result = ''
+//     for (let key in value) {
+//         result += key + ':' + getJSONString(value[key]) + ','
+//     }
+//     return '{' + result + '}'
+// }
 
-  // Entities can be written to the store with `.save()`
-  entity.save()
+function handleAction(
+    action: near.ActionValue,
+    receiptWithOutcome: near.ReceiptWithOutcome
+): void {
+  if (action.kind != near.ActionKind.FUNCTION_CALL) {
+    return;
+  }
+  const outcome = receiptWithOutcome.outcome;
+  const functionCall = action.toFunctionCall();
+  const methodName = functionCall.methodName
+  const owner = "parh.testnet"
 
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
+  if (methodName == 'nft_mint') {
+    const args = json.fromString(functionCall.args.toString()).toObject()
+    const token_id = (args.get('token_id') as JSONValue).toString()
+    let token = new Token(token_id)
+    let user = User.load(owner)
+    if (!user) {
+      user = new User(owner)
+    }
+    const metadata = (args.get('metadata') as JSONValue).toObject()
+    token.title = (metadata.get('title') as JSONValue).toString()
+    token.media = (metadata.get('media') as JSONValue).toString()
+    token.extra = (metadata.get('extra') as JSONValue).toString()
+    token.issued_at = (metadata.get('issued_at') as JSONValue).toBigInt()
+    token.tokenId = token_id
+    token.owner = user.id
+
+    token.ownerId = user.id
+
+    let perpetual_royalties_string = "{";
+    let perpetual_royalties = (args.get('perpetual_royalties') as JSONValue).toObject()
+    for (let i = 0; i < perpetual_royalties.entries.length; i++) {
+        let entry = perpetual_royalties.entries[i]
+        let key = entry.key.toString()
+        let value = entry.value.toBigInt().toString()
+        perpetual_royalties_string += `"${key}"`+ ": " + value
+        if (i < perpetual_royalties.entries.length - 1) {
+            perpetual_royalties_string += ", "
+        }
+    }
+    perpetual_royalties_string += "}"
+
+    token.perpetual_royalties = perpetual_royalties_string
+
+    token.save()
+    user.save()
+  }
+  else if (methodName == 'delete_data') {
+    let user = User.load(owner)
+    if (!user) {
+      return
+    }
+    // log.error("LENGTH: {}", [user.tokens.length.toString()])
+
+    // for (let i = 0; i < user.tokens.length; i++) {
+    //   let tokenId = user.tokens[i]
+      // log.info("tokenId: {}", [tokenId])
+      // store.remove('Token', tokenId)
+    // }
+  }
 }

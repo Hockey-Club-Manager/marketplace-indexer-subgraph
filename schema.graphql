@@ -12,6 +12,5 @@ type Token @entity {
 
 type User @entity {
   id: ID!
-  userId: String!
   tokens: [Token!]! @derivedFrom(field: "owner")
 }

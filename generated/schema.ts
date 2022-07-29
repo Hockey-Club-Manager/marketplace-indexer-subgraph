@@ -11,7 +11,7 @@ import {
   BigDecimal
 } from "@graphprotocol/graph-ts";
 
-export class ExampleEntity extends Entity {
+export class Token extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -19,18 +19,18 @@ export class ExampleEntity extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save ExampleEntity entity without an ID");
+    assert(id != null, "Cannot save Token entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type ExampleEntity must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type Token must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("ExampleEntity", id.toString(), this);
+      store.set("Token", id.toString(), this);
     }
   }
 
-  static load(id: string): ExampleEntity | null {
-    return changetype<ExampleEntity | null>(store.get("ExampleEntity", id));
+  static load(id: string): Token | null {
+    return changetype<Token | null>(store.get("Token", id));
   }
 
   get id(): string {
@@ -42,21 +42,116 @@ export class ExampleEntity extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get block(): Bytes {
-    let value = this.get("block");
-    return value!.toBytes();
+  get title(): string {
+    let value = this.get("title");
+    return value!.toString();
   }
 
-  set block(value: Bytes) {
-    this.set("block", Value.fromBytes(value));
+  set title(value: string) {
+    this.set("title", Value.fromString(value));
   }
 
-  get count(): BigInt {
-    let value = this.get("count");
+  get media(): string {
+    let value = this.get("media");
+    return value!.toString();
+  }
+
+  set media(value: string) {
+    this.set("media", Value.fromString(value));
+  }
+
+  get extra(): string {
+    let value = this.get("extra");
+    return value!.toString();
+  }
+
+  set extra(value: string) {
+    this.set("extra", Value.fromString(value));
+  }
+
+  get issued_at(): BigInt {
+    let value = this.get("issued_at");
     return value!.toBigInt();
   }
 
-  set count(value: BigInt) {
-    this.set("count", Value.fromBigInt(value));
+  set issued_at(value: BigInt) {
+    this.set("issued_at", Value.fromBigInt(value));
+  }
+
+  get tokenId(): string {
+    let value = this.get("tokenId");
+    return value!.toString();
+  }
+
+  set tokenId(value: string) {
+    this.set("tokenId", Value.fromString(value));
+  }
+
+  get owner(): string {
+    let value = this.get("owner");
+    return value!.toString();
+  }
+
+  set owner(value: string) {
+    this.set("owner", Value.fromString(value));
+  }
+
+  get ownerId(): string {
+    let value = this.get("ownerId");
+    return value!.toString();
+  }
+
+  set ownerId(value: string) {
+    this.set("ownerId", Value.fromString(value));
+  }
+
+  get perpetual_royalties(): string {
+    let value = this.get("perpetual_royalties");
+    return value!.toString();
+  }
+
+  set perpetual_royalties(value: string) {
+    this.set("perpetual_royalties", Value.fromString(value));
+  }
+}
+
+export class User extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save User entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type User must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("User", id.toString(), this);
+    }
+  }
+
+  static load(id: string): User | null {
+    return changetype<User | null>(store.get("User", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get tokens(): Array<string> {
+    let value = this.get("tokens");
+    return value!.toStringArray();
+  }
+
+  set tokens(value: Array<string>) {
+    this.set("tokens", Value.fromStringArray(value));
   }
 }
