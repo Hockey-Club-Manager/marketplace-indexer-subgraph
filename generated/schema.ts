@@ -146,12 +146,20 @@ export class User extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get tokens(): Array<string> {
+  get tokens(): Array<string> | null {
     let value = this.get("tokens");
-    return value!.toStringArray();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
   }
 
-  set tokens(value: Array<string>) {
-    this.set("tokens", Value.fromStringArray(value));
+  set tokens(value: Array<string> | null) {
+    if (!value) {
+      this.unset("tokens");
+    } else {
+      this.set("tokens", Value.fromStringArray(<Array<string>>value));
+    }
   }
 }

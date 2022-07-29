@@ -63,6 +63,12 @@ function handleAction(
     perpetual_royalties_string += "}"
 
     token.perpetual_royalties = perpetual_royalties_string
+    let user_tokens = user.tokens
+    if (!user_tokens) {
+      user_tokens = new Array<string>()
+    }
+    user_tokens.push(token.id)
+    user.tokens = user_tokens
 
     token.save()
     user.save()
@@ -72,12 +78,18 @@ function handleAction(
     if (!user) {
       return
     }
-    // log.error("LENGTH: {}", [user.tokens.length.toString()])
+    let tokens = user.tokens
+    if (!tokens) {
+      return
+    }
+    log.error("LENGTH: {}", [tokens.length.toString()])
 
-    // for (let i = 0; i < user.tokens.length; i++) {
-    //   let tokenId = user.tokens[i]
-      // log.info("tokenId: {}", [tokenId])
-      // store.remove('Token', tokenId)
-    // }
+    for (let i = 0; i < tokens.length; i++) {
+      let tokenId = tokens[i]
+      log.info("tokenId: {}", [tokenId])
+      store.remove('Token', tokenId)
+    }
+    user.tokens = null
+    user.save()
   }
 }
