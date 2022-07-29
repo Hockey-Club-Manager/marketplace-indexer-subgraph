@@ -4,21 +4,23 @@ repository: https://github.com/NFT-Hockey/marketplace-indexer-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
-#  - kind: near
-#    name: marketplace-main
-#    network: near-testnet
-#    source:
-#      account: parh.testnet
-#      startBlock: 95212323
-#    mapping:
-#      apiVersion: 0.0.6
-#      language: wasm/assemblyscript
-#      entities:
-#        - Token
-#        - User
-#      receiptHandlers:
-#        - handler: handleReceipt
-#      file: ./src/mapping.ts
+  - kind: near
+    name: marketplace-contract
+    network: near-testnet
+    source:
+      account: nft.parh.testnet
+      startBlock: 95212323
+    mapping:
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - User
+        - MarketplaceToken
+      receiptHandlers:
+        - handler: handleReceipt
+      file: ./src/mapping.ts
+
   - kind: near
     name: nft-contract
     network: near-testnet
@@ -31,6 +33,7 @@ dataSources:
       entities:
         - Token
         - User
+        - MarketplaceToken
       receiptHandlers:
         - handler: handleNFTReceipt
       file: ./src/mapping.ts
