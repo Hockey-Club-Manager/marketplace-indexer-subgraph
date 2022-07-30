@@ -17,6 +17,7 @@ dataSources:
         - Token
         - User
         - MarketplaceToken
+        - Offer
       receiptHandlers:
         - handler: handleMarketplaceReceipt
       file: ./src/mapping.ts
@@ -34,6 +35,7 @@ dataSources:
         - Token
         - User
         - MarketplaceToken
+        - Offer
       receiptHandlers:
         - handler: handleNFTReceipt
       file: ./src/mapping.ts
