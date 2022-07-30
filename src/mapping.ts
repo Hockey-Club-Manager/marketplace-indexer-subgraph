@@ -1,5 +1,13 @@
-import {near, JSONValue, json, ipfs, log, TypedMap, store} from "@graphprotocol/graph-ts"
-import { Token, User, MarketplaceToken } from "../generated/schema"
+import {json, JSONValue, log, near, store} from "@graphprotocol/graph-ts"
+import {MarketplaceToken, Offer, Token, User} from "../generated/schema"
+
+function deleteStringFromArray(array: string[], str: string): string[] {
+    const index = array.indexOf(str)
+    if (index > -1) {
+        array = array.splice(index, 1)
+    }
+    return array
+}
 
 export function handleNFTReceipt(
     receipt: near.ReceiptWithOutcome
@@ -82,7 +90,6 @@ function handleNFTAction(
         if (!tokens) {
             return
         }
-        log.error("LENGTH: {}", [tokens.length.toString()])
 
         for (let i = 0; i < tokens.length; i++) {
             let tokenId = tokens[i]
@@ -121,22 +128,52 @@ function handleNFTAction(
         const args = json.fromString(functionCall.args.toString()).toObject()
         const receiver_id = (args.get('receiver_id') as JSONValue).toString()
         const token_id = (args.get('token_id') as JSONValue).toString()
+
         const token = Token.load(token_id)
         if (!token) {
             log.error("token not found: {}", [token_id])
             return
         }
+
         const marketplaceToken = MarketplaceToken.load(token_id)
         if (!marketplaceToken) {
             log.error("marketplaceToken not found: {}", [token_id])
             return
         }
+
         let user = User.load(receiver_id)
         if (!user) {
             user = new User(receiver_id)
         }
+
+        const previous_user = User.load(token.ownerId)
+        if (!previous_user) {
+            log.error("previous_user not found: {}", [token.ownerId])
+            return
+        }
+        if (!user.tokens) {
+            log.error("user.tokens not found: {}. user has no tokens, but supposed to", [token.ownerId])
+            return
+        }
+
+        previous_user.tokens = deleteStringFromArray(user.tokens as Array<string>, token_id)
+        previous_user.save()
+
+
         token.owner = user.id
         token.ownerId = user.id
+
+        let tokens = user.tokens
+        if (tokens == null) {
+            tokens = new Array<string>()
+        }
+        tokens.push(token.id)
+        user.tokens = tokens
+
+        for (let i = 0; i < marketplaceToken.offers.length; i++) {
+            store.remove('Offer', marketplaceToken.offers[i]+"_"+receiptWithOutcome.receipt.signerId)
+        }
+
         store.remove('MarketplaceToken', token_id)
         token.save()
         user.save()
@@ -182,26 +219,55 @@ function handleMarketplaceAction(
         // }
         const args = json.fromString(functionCall.args.toString()).toObject()
         const token_id = (args.get('token_id') as JSONValue).toString()
+        const marketplaceToken = MarketplaceToken.load(token_id)
+        if (!marketplaceToken) {
+            log.error("marketplaceToken not found: {}", [token_id])
+            return
+        }
+        for (let i = 0; i < marketplaceToken.offers.length; i++) {
+            store.remove('Offer', marketplaceToken.offers[i]+"_"+receiptWithOutcome.receipt.signerId)
+        }
         store.remove('MarketplaceToken', token_id)
     }
-    // else if (methodName == 'offer') {
-    //     // {
-    //     //   "nft_contract_id": "nft_0_0.testnet",
-    //     //   "token_id": "token-1656526278801"
-    //     // }
-    //     const args = json.fromString(functionCall.args.toString()).toObject()
-    //     const token_id = (args.get('token_id') as JSONValue).toString()
-    //
-    //
-    // }
-    // else if (methodName == 'accept_offer') {
-    //     // {
-    //     //   "nft_contract_id": "nft_0_0.testnet",
-    //     //   "token_id": "token-1656538590693",
-    //     //   "ft_token_id": "near"
-    //     // }
-    //     const args = json.fromString(functionCall.args.toString()).toObject()
-    //     const token_id = (args.get('token_id') as JSONValue).toString()
-    // }
+    else if (methodName == 'offer') {
+        // {
+        //   "nft_contract_id": "nft_0_0.testnet",
+        //   "token_id": "token-1656526278801"
+        // }
+        const args = json.fromString(functionCall.args.toString()).toObject()
+        const token_id = (args.get('token_id') as JSONValue).toString()
+        const marketplaceToken = MarketplaceToken.load(token_id)
+        const price = functionCall.deposit
+        let user = User.load(receiptWithOutcome.receipt.signerId)
+        if (!user) {
+            user = new User(receiptWithOutcome.receipt.signerId)
+        }
+        user.save()
+
+        if (!marketplaceToken) {
+            log.error("MarketplaceToken not found: {}", [token_id])
+            return
+        }
+        if (marketplaceToken.isAuction) {
+            const offer = new Offer(token_id+"_"+user.id)
+            offer.price = price
+            offer.user = receiptWithOutcome.receipt.signerId
+            offer.save()
+            const offers = marketplaceToken.offers
+            offers.push(offer.id)
+            marketplaceToken.offers = offers
+        }
+        // else {
+        //     const token = Token.load(token_id)
+        //     if (!token) {
+        //         log.error("Token not found: {}", [token_id])
+        //         return
+        //     }
+        //     token.owner = receiptWithOutcome.receipt.signerId
+        //     token.ownerId = receiptWithOutcome.receipt.signerId
+        //     token.save()
+        // }
+        marketplaceToken.save()
+    }
 }
 

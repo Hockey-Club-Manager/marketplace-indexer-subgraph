@@ -16,6 +16,13 @@ type MarketplaceToken @entity {
   price: BigInt!
   token: Token!
   isAuction: Boolean!
+  offers: [Offer!]!
+}
+
+type Offer @entity {
+  id: ID!
+  price: BigInt!
+  user: User!
 }
 
 type User @entity {
