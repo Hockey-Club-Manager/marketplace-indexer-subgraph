@@ -1,4 +1,4 @@
-import {json, JSONValue, log, near, store} from "@graphprotocol/graph-ts"
+import {json, JSONValue, log, near, store, TypedMap} from "@graphprotocol/graph-ts"
 import {MarketplaceToken, Offer, Token, User} from "../generated/schema"
 
 function deleteStringFromArray(array: string[], str: string): string[] {
@@ -7,6 +7,27 @@ function deleteStringFromArray(array: string[], str: string): string[] {
         array = array.splice(index, 1)
     }
     return array
+}
+
+function calculateRarity(stats: TypedMap<string, JSONValue>): string {
+    // calculate average of all stats and then calculate rarity
+    let sum = 0;
+    let count = 0;
+    for (let i = 0; i < stats.entries.length; i++) {
+        sum += stats.entries[i].value.toI64() as i32
+        count++
+    }
+    const average = sum / count
+    if (40 <= average && average < 60)
+        return "usual"
+    else if (60 <= average && average < 76)
+        return "rare"
+    else if (76 <= average && average < 86)
+        return "super rare"
+    else if (86 <= average && average < 96)
+        return "myth"
+    else
+        return "exclusive"
 }
 
 export function handleNFTReceipt(
@@ -50,7 +71,19 @@ function handleNFTAction(
         const metadata = (args.get('metadata') as JSONValue).toObject()
         token.title = (metadata.get('title') as JSONValue).toString()
         token.media = (metadata.get('media') as JSONValue).toString()
-        token.extra = (metadata.get('extra') as JSONValue).toString()
+        const extra = json.fromString((metadata.get('extra') as JSONValue).toString()).toObject()
+        token.reality = (extra.get("reality") as JSONValue).toBool()
+        token.nationality = (extra.get("nationality") as JSONValue).toString()
+        token.birthday = (extra.get("birthday") as JSONValue).toBigInt()
+        token.number = (extra.get("number") as JSONValue).toI64() as i32
+        token.hand = (extra.get("hand") as JSONValue).toString()
+        token.player_role = (extra.get("player_role") as JSONValue).toString()
+        token.native_position = (extra.get("native_position") as JSONValue).toString()
+        token.player_type = (extra.get("player_type") as JSONValue).toString()
+
+        const stats = (extra.get("stats") as JSONValue).toObject()
+        token.rarity = calculateRarity(stats)
+
         token.issued_at = (metadata.get('issued_at') as JSONValue).toBigInt()
         token.tokenId = token_id
         token.owner = user.id
@@ -71,6 +104,21 @@ function handleNFTAction(
         perpetual_royalties_string += "}"
 
         token.perpetual_royalties = perpetual_royalties_string
+
+        let stats_string = "{";
+        for (let i = 0; i < stats.entries.length; i++) {
+            let entry = stats.entries[i]
+            let key = entry.key.toString()
+            let value = entry.value.toI64().toString()
+            stats_string += `"${key}"`+ ": " + value
+            if (i < stats.entries.length - 1) {
+                stats_string += ", "
+            }
+        }
+        stats_string += "}"
+        token.stats = stats_string
+
+
         let user_tokens = user.tokens
         if (!user_tokens) {
             user_tokens = new Array<string>()

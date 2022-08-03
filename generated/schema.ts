@@ -60,13 +60,94 @@ export class Token extends Entity {
     this.set("media", Value.fromString(value));
   }
 
-  get extra(): string {
-    let value = this.get("extra");
+  get reality(): boolean {
+    let value = this.get("reality");
+    return value!.toBoolean();
+  }
+
+  set reality(value: boolean) {
+    this.set("reality", Value.fromBoolean(value));
+  }
+
+  get stats(): string {
+    let value = this.get("stats");
     return value!.toString();
   }
 
-  set extra(value: string) {
-    this.set("extra", Value.fromString(value));
+  set stats(value: string) {
+    this.set("stats", Value.fromString(value));
+  }
+
+  get nationality(): string {
+    let value = this.get("nationality");
+    return value!.toString();
+  }
+
+  set nationality(value: string) {
+    this.set("nationality", Value.fromString(value));
+  }
+
+  get birthday(): BigInt {
+    let value = this.get("birthday");
+    return value!.toBigInt();
+  }
+
+  set birthday(value: BigInt) {
+    this.set("birthday", Value.fromBigInt(value));
+  }
+
+  get number(): i32 {
+    let value = this.get("number");
+    return value!.toI32();
+  }
+
+  set number(value: i32) {
+    this.set("number", Value.fromI32(value));
+  }
+
+  get hand(): string {
+    let value = this.get("hand");
+    return value!.toString();
+  }
+
+  set hand(value: string) {
+    this.set("hand", Value.fromString(value));
+  }
+
+  get player_role(): string {
+    let value = this.get("player_role");
+    return value!.toString();
+  }
+
+  set player_role(value: string) {
+    this.set("player_role", Value.fromString(value));
+  }
+
+  get native_position(): string {
+    let value = this.get("native_position");
+    return value!.toString();
+  }
+
+  set native_position(value: string) {
+    this.set("native_position", Value.fromString(value));
+  }
+
+  get player_type(): string {
+    let value = this.get("player_type");
+    return value!.toString();
+  }
+
+  set player_type(value: string) {
+    this.set("player_type", Value.fromString(value));
+  }
+
+  get rarity(): string {
+    let value = this.get("rarity");
+    return value!.toString();
+  }
+
+  set rarity(value: string) {
+    this.set("rarity", Value.fromString(value));
   }
 
   get issued_at(): BigInt {

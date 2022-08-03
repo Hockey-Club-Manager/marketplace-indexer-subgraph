@@ -2,7 +2,16 @@ type Token @entity {
   id: ID!
   title: String!
   media: String!
-  extra: String!
+  reality: Boolean!
+  stats: String!
+  nationality: String!
+  birthday: BigInt!
+  number: Int!
+  hand: String!
+  player_role: String!
+  native_position: String!
+  player_type: String!
+  rarity: String!
   issued_at: BigInt!
   tokenId: String!
   owner: User!
