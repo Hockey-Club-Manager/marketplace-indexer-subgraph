@@ -380,4 +380,241 @@ export class User extends Entity {
       this.set("tokens", Value.fromStringArray(<Array<string>>value));
     }
   }
+
+  get team(): string | null {
+    let value = this.get("team");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set team(value: string | null) {
+    if (!value) {
+      this.unset("team");
+    } else {
+      this.set("team", Value.fromString(<string>value));
+    }
+  }
+}
+
+export class Team extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Team entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type Team must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("Team", id.toString(), this);
+    }
+  }
+
+  static load(id: string): Team | null {
+    return changetype<Team | null>(store.get("Team", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get fives(): Array<string> {
+    let value = this.get("fives");
+    return value!.toStringArray();
+  }
+
+  set fives(value: Array<string>) {
+    this.set("fives", Value.fromStringArray(value));
+  }
+
+  get goalies(): Array<string> {
+    let value = this.get("goalies");
+    return value!.toStringArray();
+  }
+
+  set goalies(value: Array<string>) {
+    this.set("goalies", Value.fromStringArray(value));
+  }
+}
+
+export class Five extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Five entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type Five must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("Five", id.toString(), this);
+    }
+  }
+
+  static load(id: string): Five | null {
+    return changetype<Five | null>(store.get("Five", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get field_players(): Array<string> {
+    let value = this.get("field_players");
+    return value!.toStringArray();
+  }
+
+  set field_players(value: Array<string>) {
+    this.set("field_players", Value.fromStringArray(value));
+  }
+
+  get number(): string {
+    let value = this.get("number");
+    return value!.toString();
+  }
+
+  set number(value: string) {
+    this.set("number", Value.fromString(value));
+  }
+
+  get ice_time_priority(): string {
+    let value = this.get("ice_time_priority");
+    return value!.toString();
+  }
+
+  set ice_time_priority(value: string) {
+    this.set("ice_time_priority", Value.fromString(value));
+  }
+
+  get tactic(): string {
+    let value = this.get("tactic");
+    return value!.toString();
+  }
+
+  set tactic(value: string) {
+    this.set("tactic", Value.fromString(value));
+  }
+}
+
+export class PlayerOnPosition extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save PlayerOnPosition entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type PlayerOnPosition must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("PlayerOnPosition", id.toString(), this);
+    }
+  }
+
+  static load(id: string): PlayerOnPosition | null {
+    return changetype<PlayerOnPosition | null>(
+      store.get("PlayerOnPosition", id)
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get token_id(): string {
+    let value = this.get("token_id");
+    return value!.toString();
+  }
+
+  set token_id(value: string) {
+    this.set("token_id", Value.fromString(value));
+  }
+
+  get position(): string {
+    let value = this.get("position");
+    return value!.toString();
+  }
+
+  set position(value: string) {
+    this.set("position", Value.fromString(value));
+  }
+}
+
+export class Goalie extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Goalie entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type Goalie must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("Goalie", id.toString(), this);
+    }
+  }
+
+  static load(id: string): Goalie | null {
+    return changetype<Goalie | null>(store.get("Goalie", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get number(): string {
+    let value = this.get("number");
+    return value!.toString();
+  }
+
+  set number(value: string) {
+    this.set("number", Value.fromString(value));
+  }
+
+  get token_id(): string {
+    let value = this.get("token_id");
+    return value!.toString();
+  }
+
+  set token_id(value: string) {
+    this.set("token_id", Value.fromString(value));
+  }
 }

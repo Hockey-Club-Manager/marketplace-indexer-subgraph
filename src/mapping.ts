@@ -1,5 +1,21 @@
 import {json, JSONValue, log, near, store, TypedMap} from "@graphprotocol/graph-ts"
-import {MarketplaceToken, Offer, Token, User} from "../generated/schema"
+import {MarketplaceToken, Offer, Token, User,
+        Goalie, Five, PlayerOnPosition, Team} from "../generated/schema"
+
+function getFiveId(teamId: string, number: string): string {
+    // see Five structure in schema.graphql
+    return teamId+"_"+number
+}
+
+function getPlayerOnPositionId(fiveId: string, position: string): string {
+    // see PlayerOnPosition structure in schema.graphql
+    return fiveId+"_"+position
+}
+
+function getGoalieId(teamId: string, number: string): string {
+    // see Goalie structure in schema.graphql
+    return teamId+"_"+number
+}
 
 function deleteStringFromArray(array: string[], str: string): string[] {
     const index = array.indexOf(str)

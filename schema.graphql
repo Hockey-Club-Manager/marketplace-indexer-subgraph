@@ -1,40 +1,67 @@
 type Token @entity {
-  id: ID!
-  title: String!
-  media: String!
-  reality: Boolean!
-  stats: String!
-  nationality: String!
-  birthday: BigInt!
-  number: Int!
-  hand: String!
-  player_role: String!
-  native_position: String!
-  player_type: String!
-  rarity: String!
-  issued_at: BigInt!
-  tokenId: String!
-  owner: User!
-  ownerId: String!
-  perpetual_royalties: String!
-  marketplace_data: MarketplaceToken @derivedFrom(field: "token")
+    id: ID!
+    title: String!
+    media: String!
+    reality: Boolean!
+    stats: String!
+    nationality: String!
+    birthday: BigInt!
+    number: Int!
+    hand: String!
+    player_role: String!
+    native_position: String!
+    player_type: String!
+    rarity: String!
+    issued_at: BigInt!
+    tokenId: String!
+    owner: User!
+    ownerId: String!
+    perpetual_royalties: String!
+    marketplace_data: MarketplaceToken @derivedFrom(field: "token")
 }
 
 type MarketplaceToken @entity {
-  id: ID!
-  price: BigInt!
-  token: Token!
-  isAuction: Boolean!
-  offers: [Offer!]!
+    id: ID!
+    price: BigInt!
+    token: Token!
+    isAuction: Boolean!
+    offers: [Offer!]!
 }
 
 type Offer @entity {
-  id: ID!
-  price: BigInt!
-  user: User!
+    id: ID!
+    price: BigInt!
+    user: User!
 }
 
 type User @entity {
-  id: ID!
-  tokens: [String!]
+    id: ID!
+    tokens: [String!]
+    team: Team
+}
+
+type Team @entity {
+    id: ID!  # id is user's id
+    fives: [Five!]!
+    goalies: [Goalie!]!
+}
+
+type Five @entity {
+    id: ID! # id is team id + _ + Five number. Example: let45fc.testnet_First, let45fc.testnet_PowerPlay1
+    field_players: [PlayerOnPosition!]!
+    number: String!
+    ice_time_priority: String!
+    tactic: String!
+}
+
+type PlayerOnPosition @entity {
+    id: ID! # id is Five id + _ + position. Example: let45fc.testnet_First_RW
+    token_id: String!
+    position: String!
+}
+
+type Goalie @entity {
+    id: ID! # id is team id + _ + Goalie number. Example: let45fc.testnet_MainGoalkeeper
+    number: String!
+    token_id: String!
 }
