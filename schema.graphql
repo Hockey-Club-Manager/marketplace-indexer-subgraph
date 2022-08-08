@@ -55,13 +55,13 @@ type Five @entity {
 }
 
 type PlayerOnPosition @entity {
-    id: ID! # id is Five id + _ + position. Example: let45fc.testnet_First_RW
+    id: ID! # id is team id + _ + position. Example: let45fc.testnet_token-392874592
     token_id: String!
     position: String!
 }
 
 type Goalie @entity {
-    id: ID! # id is team id + _ + Goalie number. Example: let45fc.testnet_MainGoalkeeper
-    number: String!
+    id: ID! # id is team id + _ + token_id. Example: let45fc.testnet_token-123328974
+    number: String!  # MainGoalkeeper or SubstituteGoalkeeper
     token_id: String!
 }

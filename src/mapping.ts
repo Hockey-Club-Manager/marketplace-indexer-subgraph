@@ -7,14 +7,9 @@ function getFiveId(teamId: string, number: string): string {
     return teamId+"_"+number
 }
 
-function getPlayerOnPositionId(fiveId: string, position: string): string {
-    // see PlayerOnPosition structure in schema.graphql
-    return fiveId+"_"+position
-}
-
-function getGoalieId(teamId: string, number: string): string {
+function getPlayerId(teamId: string, tokenId: string): string {
     // see Goalie structure in schema.graphql
-    return teamId+"_"+number
+    return teamId+"_"+tokenId
 }
 
 function deleteStringFromArray(array: string[], str: string): string[] {
@@ -240,6 +235,95 @@ function handleNFTAction(
 
         store.remove('MarketplaceToken', token_id)
         token.save()
+        user.save()
+    }
+    else if (methodName == 'manage_team') {
+        // { "team_ids": {
+        //   "fives": {"First": {
+        //              "field_players": {
+        //               "LW": "token-12345678",
+        //               "RD": "token-53873284",
+        //               "C": "token-23098223",
+        //               "LD": "token-90872398",
+        //               "RW": "token-73472018"
+        //             },
+        //             "number": "First",
+        //             "ice_time_priority": "SuperLowPriority",
+        //             "tactic": "Safe"
+        //         }
+        //   },
+        //  "goalies": {
+        //         "MainGoalkeeper": "token-12045678"
+        //         }
+        //  }
+        //
+        const args = json.fromString(functionCall.args.toString()).toObject()
+        const team_ids = (args.get('team_ids') as JSONValue).toObject()
+        const fives = (team_ids.get('fives') as JSONValue).toObject()
+        const goalies = (team_ids.get('goalies') as JSONValue).toObject()
+
+        let team = Team.load(receiptWithOutcome.receipt.signerId)
+        if (!team) {
+            team = new Team(receiptWithOutcome.receipt.signerId)
+        }
+
+        const fivesArray = new Array<string>()
+        for (let i = 0; i < fives.entries.length; i++) {
+            let five: Five | null
+            const fiveNumber = fives.entries[i].key
+            const fiveData = fives.entries[i].value.toObject()
+            const fieldPlayersData = (fiveData.get('field_players') as JSONValue).toObject()
+            five = Five.load(getFiveId(team.id, fiveNumber))
+            if (!five) {
+                five = new Five(getFiveId(team.id, fiveNumber))
+            }
+            five.number = fiveNumber
+            five.ice_time_priority = (fiveData.get('ice_time_priority') as JSONValue).toString()
+            five.tactic = (fiveData.get('tactic') as JSONValue).toString()
+            const fieldPlayers = new Array<string>()
+            for (let j = 0; j < fieldPlayersData.entries.length; j++) {
+                const position = fieldPlayersData.entries[j].key
+                const fieldPlayerToken = fieldPlayersData.entries[j].value.toString()
+                let playerOnPosition = PlayerOnPosition.load(getPlayerId(five.id, fieldPlayerToken))
+                if (!playerOnPosition) {
+                    playerOnPosition = new PlayerOnPosition(getPlayerId(five.id, fieldPlayerToken))
+                }
+                playerOnPosition.position = position
+                playerOnPosition.token_id = fieldPlayerToken
+                playerOnPosition.save()
+                fieldPlayers.push(playerOnPosition.id)
+                // TODO: remove playerOnPosition if it is not used
+            }
+            five.field_players = fieldPlayers
+            five.save()
+
+            fivesArray.push(five.id)
+        }
+
+        team.fives = fivesArray
+
+        const goaliesArray = new Array<string>()
+        for (let i = 0; i < goalies.entries.length; i++) {
+            let goalie: Goalie | null
+            const goalieNumber = goalies.entries[i].key
+            const goalieTokenId = goalies.entries[i].value.toString()
+            goalie = Goalie.load(getPlayerId(team.id, goalieTokenId))
+            if (!goalie) {
+                goalie = new Goalie(getPlayerId(team.id, goalieTokenId))
+            }
+            goalie.number = goalieNumber
+            goalie.token_id = goalieTokenId
+            goalie.save()
+            // TODO: remove goalie if it is not used
+
+            goaliesArray.push(goalie.id)
+        }
+        team.goalies = goaliesArray
+        team.save()
+
+        // user definetely exists on this step
+        const user = User.load(receiptWithOutcome.receipt.signerId) as User
+        user.team = team.id
         user.save()
     }
 }
