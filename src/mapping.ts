@@ -166,6 +166,11 @@ function handleNFTAction(
         // }
         const args = json.fromString(functionCall.args.toString()).toObject()
         const token_id = (args.get('token_id') as JSONValue).toString()
+        let msgObj = args.get('msg')
+        if (!msgObj) {
+            log.error("msg is null", [])
+            return
+        }
         const msg = (args.get('msg') as JSONValue).toObject()
         const is_auction = (msg.get('is_auction') as JSONValue).toBool()
         const sale_conditions = (msg.get('sale_conditions') as JSONValue).toObject()
