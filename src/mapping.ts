@@ -12,7 +12,7 @@ function getPlayerId(teamId: string, tokenId: string): string {
     return teamId+"_"+tokenId
 }
 
-function deleteStringFromArray(array: string[], str: string): string[] {
+function deleteObjFromArray<T>(array: T[], str: T): T[] {
     const index = array.indexOf(str)
     if (index > -1) {
         array = array.splice(index, 1)
@@ -78,15 +78,15 @@ function handleNFTAction(
     const outcome = receiptWithOutcome.outcome;
     const functionCall = action.toFunctionCall();
     const methodName = functionCall.methodName
-    const owner = "parh.testnet"
+    const defaultOwner = "parh.testnet"
 
     if (methodName == 'nft_mint') {
         const args = json.fromString(functionCall.args.toString()).toObject()
         const token_id = (args.get('token_id') as JSONValue).toString()
         let token = new Token(token_id)
-        let user = User.load(owner)
+        let user = User.load(defaultOwner)
         if (!user) {
-            user = new User(owner)
+            user = new User(defaultOwner)
         }
         const metadata = (args.get('metadata') as JSONValue).toObject()
         token.title = (metadata.get('title') as JSONValue).toString()
@@ -150,7 +150,7 @@ function handleNFTAction(
         user.save()
     }
     else if (methodName == 'delete_data') {
-        let user = User.load(owner)
+        let user = User.load(defaultOwner)
         if (!user) {
             return
         }
@@ -176,6 +176,7 @@ function handleNFTAction(
         const args = json.fromString(functionCall.args.toString()).toObject()
         const token_id = (args.get('token_id') as JSONValue).toString()
         let msgObj = args.get('msg')
+        const userId = receiptWithOutcome.receipt.signerId
         if (!msgObj) {
             log.error("msg is null", [])
             return
@@ -185,10 +186,35 @@ function handleNFTAction(
         const sale_conditions = (msg.get('sale_conditions') as JSONValue).toObject()
         const price = (sale_conditions.get('near') as JSONValue).toBigInt()
         const marketplaceToken = new MarketplaceToken(token_id)
+
+        // removing player from team if he is in it
+        const playerId = getPlayerId(userId, token_id)
+        const team = Team.load(playerId)
+        if (team) {  // if exists, token could be in it. Otherwise, it couldn't
+            const player = PlayerOnPosition.load(playerId)
+            const goalie = Goalie.load(playerId)
+            if (player) {
+                for (let i = 0; i < team.fives.length; i++) {
+                    const five = Five.load(team.fives[i])
+                    if (!five) {
+                        log.error("Deleting token {} from team: five does not exist", [token_id])
+                        continue
+                    }
+                    five.field_players = deleteObjFromArray(five.field_players, playerId)
+                }
+                store.remove('PlayerOnPosition', playerId)
+            }
+            else if (goalie) {
+                team.goalies = deleteObjFromArray(team.goalies, playerId)
+                store.remove('Goalie', playerId)
+            }
+        }
+
         marketplaceToken.token = token_id
         marketplaceToken.price = price
         marketplaceToken.isAuction = is_auction
         marketplaceToken.save()
+
     }
     else if (methodName == 'nft_transfer_payout') {
         // {
@@ -230,7 +256,7 @@ function handleNFTAction(
             return
         }
 
-        previous_user.tokens = deleteStringFromArray(user.tokens as Array<string>, token_id)
+        previous_user.tokens = deleteObjFromArray(user.tokens as Array<string>, token_id)
         previous_user.save()
 
 
