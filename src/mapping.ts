@@ -20,6 +20,15 @@ function deleteStringFromArray(array: string[], str: string): string[] {
     return array
 }
 
+
+function addObjToArray<T>(array: T[] | null, obj: T): T[] {
+    if (array == null) {
+        array = new Array<T>()
+    }
+    array.push(obj)
+    return array
+}
+
 function calculateRarity(stats: TypedMap<string, JSONValue>): string {
     // calculate average of all stats and then calculate rarity
     let sum = 0;
@@ -180,7 +189,8 @@ function handleNFTAction(
         marketplaceToken.price = price
         marketplaceToken.isAuction = is_auction
         marketplaceToken.save()
-    } else if (methodName == 'nft_transfer_payout') {
+    }
+    else if (methodName == 'nft_transfer_payout') {
         // {
         //   "receiver_id": "humster_investor.testnet",
         //   "token_id": "token-1656538590693",
@@ -329,6 +339,34 @@ function handleNFTAction(
         // user definetely exists on this step
         const user = User.load(receiptWithOutcome.receipt.signerId) as User
         user.team = team.id
+        user.save()
+    }
+    else if (methodName == 'buy_pack') {
+        // {”account_id”: “let45fc.testnet", “token_id”: “token-12345678”}
+        if (receiptWithOutcome.outcome.logs.length == 0) {
+            log.error("logs are empty", [])
+            return
+        }
+        const logData = json.fromString(receiptWithOutcome.outcome.logs[0]).toObject()
+        const tokenId = logData.get('token_id')
+        if (!tokenId) {
+            log.error("buy_pack: tokenId is empty", [])
+            return
+        }
+        const token = Token.load(tokenId.toString())
+        if (!token) {
+            log.error("buy_pack: token {} does not exist in indexer", [tokenId.toString()])
+            return
+        }
+        let user = User.load(receiptWithOutcome.receipt.signerId)
+        if (!user) {
+            user = new User(receiptWithOutcome.receipt.signerId)
+        }
+
+        user.tokens = addObjToArray(user.tokens, tokenId.toString())
+        token.owner = user.id
+        token.ownerId = user.id
+        token.save()
         user.save()
     }
 }
