@@ -367,32 +367,41 @@ function handleNFTAction(
         user.team = team.id
         user.save()
     }
-    else if (methodName == 'buy_pack') {
+    else if (methodName == 'nft_buy_pack' || methodName == "nft_register_account") {
         // {”account_id”: “let45fc.testnet", “token_id”: “token-12345678”}
         if (receiptWithOutcome.outcome.logs.length == 0) {
             log.error("logs are empty", [])
             return
         }
-        const logData = json.fromString(receiptWithOutcome.outcome.logs[0]).toObject()
-        const tokenId = logData.get('token_id')
-        if (!tokenId) {
-            log.error("buy_pack: tokenId is empty", [])
-            return
+        const args = json.fromString(functionCall.args.toString()).toObject()
+
+        const tokens = new Array<string>()
+        const logData = json.fromString(receiptWithOutcome.outcome.logs[0]).toArray()
+        for (let i = 0; i < logData.length; i++) {
+            const tokenId = logData[i].toString()
+            if (!tokenId) {
+                log.error("nft_buy_pack or nft_register_account: tokenId is empty", [])
+                continue
+            }
+            tokens.push(tokenId)
         }
-        const token = Token.load(tokenId.toString())
-        if (!token) {
-            log.error("buy_pack: token {} does not exist in indexer", [tokenId.toString()])
-            return
-        }
+        const receiver_id = args.get('receiver_id')!.toString()
+
         let user = User.load(receiptWithOutcome.receipt.signerId)
         if (!user) {
             user = new User(receiptWithOutcome.receipt.signerId)
         }
-
-        user.tokens = addObjToArray(user.tokens, tokenId.toString())
-        token.owner = user.id
-        token.ownerId = user.id
-        token.save()
+        for (let i = 0; i < tokens.length; i++) {
+            const token = Token.load(tokens[i].toString())
+            if (!token) {
+                log.error("nft_buy_pack or nft_register_account: token {} does not exist in indexer", [tokens[i].toString()])
+                return
+            }
+            token.owner = user.id
+            token.ownerId = user.id
+            token.save()
+        }
+        user.tokens = (user.tokens ? user.tokens!: new Array<string>()).concat(tokens)
         user.save()
     }
 }
