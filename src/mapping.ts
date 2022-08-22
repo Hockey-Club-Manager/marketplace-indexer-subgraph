@@ -39,15 +39,15 @@ function calculateRarity(stats: TypedMap<string, JSONValue>): string {
     }
     const average = sum / count
     if (40 <= average && average < 60)
-        return "usual"
+        return "Common"
     else if (60 <= average && average < 76)
-        return "rare"
+        return "Uncommon"
     else if (76 <= average && average < 86)
-        return "super rare"
+        return "Rare"
     else if (86 <= average && average < 96)
-        return "myth"
+        return "Unique"
     else
-        return "exclusive"
+        return "Exclusive"
 }
 
 export function handleNFTReceipt(
