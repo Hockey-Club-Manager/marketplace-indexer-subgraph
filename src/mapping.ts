@@ -302,6 +302,7 @@ function handleNFTAction(
         const team_ids = (args.get('team_ids') as JSONValue).toObject()
         const fives = (team_ids.get('fives') as JSONValue).toObject()
         const goalies = (team_ids.get('goalies') as JSONValue).toObject()
+        const goalie_substitutions = (team_ids.get('goalie_substitutions') as JSONValue).toObject()
 
         let team = Team.load(receiptWithOutcome.receipt.signerId)
         if (!team) {
@@ -360,6 +361,25 @@ function handleNFTAction(
             goaliesArray.push(goalie.id)
         }
         team.goalies = goaliesArray
+
+
+        const goalieSubstitutionsArray = new Array<string>()
+        for (let i = 0; i < goalie_substitutions.entries.length; i++) {
+            let goalie: Goalie | null
+            const goalieNumber = goalie_substitutions.entries[i].key
+            const goalieTokenId = goalie_substitutions.entries[i].value.toString()
+            goalie = Goalie.load(getPlayerId(team.id, goalieTokenId))
+            if (!goalie) {
+                goalie = new Goalie(getPlayerId(team.id, goalieTokenId))
+            }
+            goalie.number = goalieNumber
+            goalie.token_id = goalieTokenId
+            goalie.save()
+            // TODO: remove goalie if it is not used
+
+            goalieSubstitutionsArray.push(goalie.id)
+        }
+        team.goalie_substitutions = goalieSubstitutionsArray
         team.save()
 
         // user definetely exists on this step

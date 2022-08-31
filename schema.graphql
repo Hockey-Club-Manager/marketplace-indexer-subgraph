@@ -44,6 +44,7 @@ type Team @entity {
     id: ID!  # id is user's id
     fives: [Five!]!
     goalies: [Goalie!]!
+    goalie_substitutions: [Goalie!]!
 }
 
 type Five @entity {

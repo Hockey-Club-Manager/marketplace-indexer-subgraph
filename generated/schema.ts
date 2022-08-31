@@ -447,6 +447,15 @@ export class Team extends Entity {
   set goalies(value: Array<string>) {
     this.set("goalies", Value.fromStringArray(value));
   }
+
+  get goalie_substitutions(): Array<string> {
+    let value = this.get("goalie_substitutions");
+    return value!.toStringArray();
+  }
+
+  set goalie_substitutions(value: Array<string>) {
+    this.set("goalie_substitutions", Value.fromStringArray(value));
+  }
 }
 
 export class Five extends Entity {
