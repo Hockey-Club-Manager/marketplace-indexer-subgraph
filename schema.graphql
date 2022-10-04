@@ -29,7 +29,7 @@ type MarketplaceToken @entity {
 }
 
 type Offer @entity {
-    id: ID!
+    id: ID!  # token_id + user_id
     price: BigInt!
     user: User!
 }
@@ -56,7 +56,7 @@ type Five @entity {
 }
 
 type PlayerOnPosition @entity {
-    id: ID! # id is team id + _ + position. Example: let45fc.testnet_token-392874592
+    id: ID! # id is team id + _ + token_id. Example: let45fc.testnet_token-392874592
     token_id: String!
     position: String!
 }

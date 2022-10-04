@@ -1,4 +1,4 @@
-import {json, JSONValue, log, near, store, TypedMap} from "@graphprotocol/graph-ts"
+import {BigInt, json, JSONValue, log, near, store, TypedMap} from "@graphprotocol/graph-ts"
 import {MarketplaceToken, Offer, Token, User,
         Goalie, Five, PlayerOnPosition, Team} from "../generated/schema"
 
@@ -10,6 +10,10 @@ function getFiveId(teamId: string, number: string): string {
 function getPlayerId(teamId: string, tokenId: string): string {
     // see Goalie structure in schema.graphql
     return teamId+"_"+tokenId
+}
+
+function getOfferId(tokenId: string, userId: string): string {
+    return tokenId+"_"+userId
 }
 
 function deleteObjFromArray<T>(array: T[], str: T): T[] {
@@ -175,21 +179,21 @@ function handleNFTAction(
         // }
         const args = json.fromString(functionCall.args.toString()).toObject()
         const token_id = (args.get('token_id') as JSONValue).toString()
-        let msgObj = args.get('msg')
         const userId = receiptWithOutcome.receipt.signerId
-        if (!msgObj) {
+        if (!args.get('msg')) {
             log.error("msg is null", [])
             return
         }
-        const msg = (args.get('msg') as JSONValue).toObject()
+        // log.error("msg: {}", [args.get('msg')!.toString()])
+        const msg = json.fromString(args.get('msg')!.toString()).toObject()
         const is_auction = (msg.get('is_auction') as JSONValue).toBool()
         const sale_conditions = (msg.get('sale_conditions') as JSONValue).toObject()
-        const price = (sale_conditions.get('near') as JSONValue).toBigInt()
+        const price = (sale_conditions.get('near') as JSONValue).toString()
         const marketplaceToken = new MarketplaceToken(token_id)
 
         // removing player from team if he is in it
         const playerId = getPlayerId(userId, token_id)
-        const team = Team.load(playerId)
+        const team = Team.load(userId)
         if (team) {  // if exists, token could be in it. Otherwise, it couldn't
             const player = PlayerOnPosition.load(playerId)
             const goalie = Goalie.load(playerId)
@@ -209,9 +213,14 @@ function handleNFTAction(
                 store.remove('Goalie', playerId)
             }
         }
+        // const offer = new Offer(getOfferId(token_id, userId))
+        // offer.price = BigInt.fromString(price)
+        // offer.user = userId
+        // offer.save()
 
         marketplaceToken.token = token_id
-        marketplaceToken.price = price
+        marketplaceToken.price = BigInt.fromString(price)
+        marketplaceToken.offers = new Array<string>()
         marketplaceToken.isAuction = is_auction
         marketplaceToken.save()
 
@@ -271,7 +280,7 @@ function handleNFTAction(
         user.tokens = tokens
 
         for (let i = 0; i < marketplaceToken.offers.length; i++) {
-            store.remove('Offer', marketplaceToken.offers[i]+"_"+receiptWithOutcome.receipt.signerId)
+            store.remove('Offer', marketplaceToken.offers[i])
         }
 
         store.remove('MarketplaceToken', token_id)
@@ -471,7 +480,7 @@ function handleMarketplaceAction(
             return
         }
         for (let i = 0; i < marketplaceToken.offers.length; i++) {
-            store.remove('Offer', marketplaceToken.offers[i]+"_"+receiptWithOutcome.receipt.signerId)
+            store.remove('Offer', marketplaceToken.offers[i])
         }
         store.remove('MarketplaceToken', token_id)
     }
@@ -495,7 +504,7 @@ function handleMarketplaceAction(
             return
         }
         if (marketplaceToken.isAuction) {
-            const offer = new Offer(token_id+"_"+user.id)
+            const offer = new Offer(getOfferId(token_id, user.id))
             offer.price = price
             offer.user = receiptWithOutcome.receipt.signerId
             offer.save()
