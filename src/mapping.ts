@@ -459,7 +459,7 @@ function handleMarketplaceAction(
 
         const args = json.fromString(functionCall.args.toString()).toObject()
         const token_id = (args.get('token_id') as JSONValue).toString()
-        const price = (args.get('price') as JSONValue).toBigInt()
+        const price = BigInt.fromString(args.get('price')!.toString())
         const marketplaceToken = MarketplaceToken.load(token_id)
         if (!marketplaceToken) {
             return
