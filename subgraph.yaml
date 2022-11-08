@@ -1,6 +1,8 @@
 specVersion: 0.0.4
 description: Subgraph for NFTHockey marketplace
 repository: https://github.com/NFT-Hockey/marketplace-indexer-subgraph
+features:
+  - fullTextSearch
 schema:
   file: ./schema.graphql
 dataSources:
